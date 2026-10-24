@@ -1,5 +1,7 @@
 # 大肥鱼日记 / Dafeiyu Diary
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 给 [AstrBot](https://github.com/AstrBotDevs/AstrBot) 的「大肥鱼」人格加一个会自己写日记的轻量插件。
 
 Bot 会把当天的群聊/私聊记录下来，每天写一篇符合人设的短日记；回复时最多召回两篇最近日记，但不会背原文，也不会说“我写了日记”。

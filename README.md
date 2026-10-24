@@ -1,6 +1,8 @@
 # Dafeiyu Diary
 
-A lightweight diary-memory plugin for [AstrBot](https://github.com/AstrBotDevs/AstrBot), built for the **Dafeiyu / 大肥鱼** persona.
+[English](README.md) | [简体中文](README.zh-CN.md)
+
+A lightweight diary-memory plugin for [AstrBot](https://github.com/AstrBotDevs/AstrBot).
 
 The bot records the day's chat, writes one short private diary entry in character, and recalls up to two recent entries when it replies. The diary is never quoted verbatim and the bot is instructed never to mention that it keeps a diary.
 
