@@ -1,0 +1,42 @@
+{
+  "enabled": {
+    "type": "bool",
+    "default": true,
+    "description": "启用日记功能"
+  },
+  "write_hour": {
+    "type": "int",
+    "default": 23,
+    "description": "每天写日记的小时（0-23）"
+  },
+  "write_minute": {
+    "type": "int",
+    "default": 30,
+    "description": "每天写日记的分钟（0-59）"
+  },
+  "diary_min_chars": {
+    "type": "int",
+    "default": 60,
+    "description": "日记最少字数"
+  },
+  "diary_max_chars": {
+    "type": "int",
+    "default": 150,
+    "description": "日记最多字数（超过 300 会自动放宽存储上限）"
+  },
+  "provider_id": {
+    "type": "string",
+    "default": "",
+    "description": "写日记使用的模型 Provider ID；留空使用当前默认模型"
+  },
+  "recall_limit": {
+    "type": "int",
+    "default": 2,
+    "description": "每次回复最多召回几篇日记（1-5）"
+  },
+  "max_transcript_chars": {
+    "type": "int",
+    "default": 6000,
+    "description": "写日记时最多读取多少字符的当天聊天记录"
+  }
+}
