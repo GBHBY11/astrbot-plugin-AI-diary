@@ -97,7 +97,7 @@ data/plugin_data/astrbot_plugin_dafeiyu_diary/
 
 The project name and plugin ID are intentionally separate:
 
-- GitHub repository: `astrbot-plugin-dafeiyu-diary`
+- GitHub repository: `astrbot-plugin-AI-diary`
 - AstrBot plugin ID: `astrbot_plugin_dafeiyu_diary`
 
 ## Notes

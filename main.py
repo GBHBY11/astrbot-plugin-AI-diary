@@ -26,7 +26,7 @@ from .dafeiyu_diary import DiaryStore, build_recall_block, build_write_messages
     "DSH",
     "A private daily-diary memory plugin for AstrBot's Dafeiyu persona.",
     "1.0.0",
-    "https://github.com/GBHBY11/astrbot-plugin-dafeiyu-diary",
+    "https://github.com/GBHBY11/astrbot-plugin-AI-diary",
 )
 class DafeiyuDiaryPlugin(Star):
     def __init__(self, context: Context, config: dict | None = None):

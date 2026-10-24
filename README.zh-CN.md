@@ -85,7 +85,7 @@ data/plugin_data/astrbot_plugin_dafeiyu_diary/
 
 ## 项目命名
 
-- GitHub 仓库：`astrbot-plugin-dafeiyu-diary`
+- GitHub 仓库：`astrbot-plugin-AI-diary`
 - AstrBot 插件 ID：`astrbot_plugin_dafeiyu_diary`
 
 ## 许可
