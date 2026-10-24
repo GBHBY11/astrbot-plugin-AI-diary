@@ -6,6 +6,7 @@
 - Changed the AstrBot plugin ID to `astrbot_plugin_ai_diary`.
 - Updated English and Chinese installation, configuration and migration docs.
 - Added direct ZIP download instructions.
+- Added README artwork and refreshed bilingual documentation.
 
 ## 1.0.0
 
