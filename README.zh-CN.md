@@ -40,6 +40,8 @@ astrbot_plugin_ai_diary
 AstrBot/data/plugins/astrbot_plugin_ai_diary/
 ```
 
+如果 AstrBot 跑在 Docker 里，放到宿主机挂载到 `/AstrBot/data/plugins` 的目录；容器内路径是 `/AstrBot/data/plugins/astrbot_plugin_ai_diary`。
+
 5. 重启 AstrBot，或在 WebUI 里重载插件
 
 最终目录必须是：

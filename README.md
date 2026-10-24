@@ -40,6 +40,8 @@ astrbot_plugin_ai_diary
 AstrBot/data/plugins/astrbot_plugin_ai_diary/
 ```
 
+If AstrBot runs in Docker, use the host directory mounted to `/AstrBot/data/plugins`; the container path is `/AstrBot/data/plugins/astrbot_plugin_ai_diary`.
+
 5. Restart AstrBot, or reload the plugin from the WebUI.
 
 The final layout must be:
