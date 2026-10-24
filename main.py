@@ -1,5 +1,7 @@
-﻿"""AstrBot 鎻掍欢锛氱粰銆屽ぇ鑲ラ奔銆嶅姞涓婁細鑷繁鍐欐棩璁扮殑璁板繂銆?
-渚濊禆鍚岀洰褰曠殑 dafeiyu_diary.py锛堟爣鍑嗗簱瀹炵幇锛夈€?"""
+"""AstrBot plugin: a private daily-diary memory for your bot.
+
+依赖同目录的 ai_diary.py（标准库实现）。
+"""
 
 from __future__ import annotations
 
@@ -17,22 +19,22 @@ from astrbot.api.provider import ProviderRequest
 from astrbot.api.star import Context, Star, register
 from astrbot.core.star.star_tools import StarTools
 
-from . import dafeiyu_diary as diary_module
-from .dafeiyu_diary import DiaryStore, build_recall_block, build_write_messages
+from . import ai_diary as diary_module
+from .ai_diary import DiaryStore, build_recall_block, build_write_messages
 
 
 @register(
-    "astrbot_plugin_dafeiyu_diary",
+    "astrbot_plugin_ai_diary",
     "DSH",
-    "A private daily-diary memory plugin for AstrBot's Dafeiyu persona.",
-    "1.0.0",
+    "A private daily-diary memory plugin for AstrBot.",
+    "1.1.0",
     "https://github.com/GBHBY11/astrbot-plugin-AI-diary",
 )
-class DafeiyuDiaryPlugin(Star):
+class AiBotDiaryPlugin(Star):
     def __init__(self, context: Context, config: dict | None = None):
         super().__init__(context)
         self.config = config or {}
-        self.data_dir = Path(StarTools.get_data_dir("astrbot_plugin_dafeiyu_diary"))
+        self.data_dir = Path(StarTools.get_data_dir("astrbot_plugin_ai_diary"))
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.store = DiaryStore(str(self.data_dir / "diary"))
         self.transcript_root = self.data_dir / "transcripts"
@@ -41,7 +43,7 @@ class DafeiyuDiaryPlugin(Star):
         self._last_written_day = ""
         self._seen: set[str] = set()
         self._task = asyncio.create_task(self._diary_loop())
-        logger.info("[澶ц偉楸兼棩璁癩 宸插姞杞斤紝鏁版嵁鐩綍=%s", self.data_dir)
+        logger.info("[AI bot diary] 已加载，数据目录=%s", self.data_dir)
 
     def _cfg(self, key, default):
         try:
@@ -67,7 +69,7 @@ class DafeiyuDiaryPlugin(Star):
         try:
             return path.read_text(encoding="utf-8")
         except Exception:
-            return "浣犳槸澶ц偉楸硷紝涓€鏉″偛濞囥€佸槾纭績杞殑钃濊壊灏忛哺楸笺€?
+            return "你是一个有自己生活的角色。"
 
     @staticmethod
     def _safe(value: str) -> str:
@@ -117,14 +119,14 @@ class DafeiyuDiaryPlugin(Star):
         row = {
             "ts": datetime.now().isoformat(timespec="seconds"),
             "role": role,
-            "name": name or ("澶ц偉楸? if role == "assistant" else "缇ゅ弸"),
+            "name": name or ("Bot" if role == "assistant" else "群友"),
             "text": text[:2000],
         }
         try:
             with path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(row, ensure_ascii=False) + "\n")
         except Exception as exc:
-            logger.warning("[澶ц偉楸兼棩璁癩 鍐欏叆鑱婂ぉ璁板綍澶辫触: %s", exc)
+            logger.warning("[AI bot diary] 写入聊天记录失败: %s", exc)
 
     def _read_transcript(self, session: str, day: str):
         path = self.transcript_root / self._safe(session) / f"{day}.jsonl"
@@ -140,14 +142,14 @@ class DafeiyuDiaryPlugin(Star):
                 except json.JSONDecodeError:
                     continue
         except Exception as exc:
-            logger.warning("[澶ц偉楸兼棩璁癩 璇诲彇鑱婂ぉ璁板綍澶辫触: %s", exc)
+            logger.warning("[AI bot diary] 读取聊天记录失败: %s", exc)
             return "", []
         people = []
         for row in rows:
             name = str(row.get("name") or "").strip()
             if name and name not in people:
                 people.append(name)
-        text = "\n".join(f"{row.get('name', '缇ゅ弸')}: {row.get('text', '')}" for row in rows)
+        text = "\n".join(f"{row.get('name', '群友')}: {row.get('text', '')}" for row in rows)
         limit = max(1000, int(self._cfg("max_transcript_chars", 6000)))
         return text[-limit:], people
 
@@ -165,16 +167,17 @@ class DafeiyuDiaryPlugin(Star):
             return False
         provider = self._provider()
         if provider is None:
-            logger.warning("[澶ц偉楸兼棩璁癩 娌℃湁鍙敤鐨勬ā鍨嬫彁渚涘晢锛岃烦杩?%s", session)
+            logger.warning("[AI bot diary] 没有可用的模型提供商，跳过 %s", session)
             return False
         minimum, maximum = self._length_range()
-        # 妯″潡榛樿纭笂闄愭槸 300 瀛楋紱鐢ㄦ埛瑕佹眰鏇撮暱鏃跺悓姝ユ斁瀹姐€?        diary_module.MAX_ENTRY_CHARS = max(300, maximum)
+        # 模块默认硬上限是 300 字；用户要求更长时同步放宽。
+        diary_module.MAX_ENTRY_CHARS = max(300, maximum)
         messages = build_write_messages(self.persona, transcript, day)
         system_prompt = messages[0]["content"]
-        if "60~150 瀛? in system_prompt:
-            system_prompt = system_prompt.replace("60~150 瀛?, f"{minimum}~{maximum} 瀛?)
+        if "60~150 字" in system_prompt:
+            system_prompt = system_prompt.replace("60~150 字", f"{minimum}~{maximum} 字")
         else:
-            system_prompt += f"\n\n鏈鏃ヨ闀垮害瑕佹眰锛歿minimum}~{maximum} 瀛椼€?
+            system_prompt += f"\n\n本次日记长度要求：{minimum}~{maximum} 字。"
         messages[0]["content"] = system_prompt
         try:
             response = await provider.text_chat(
@@ -183,12 +186,12 @@ class DafeiyuDiaryPlugin(Star):
             )
             text = str(getattr(response, "completion_text", "") or "").strip()
         except Exception as exc:
-            logger.warning("[澶ц偉楸兼棩璁癩 鐢熸垚澶辫触锛堥潤榛樿烦杩囷級: %s", exc)
+            logger.warning("[AI bot diary] 生成失败（静默跳过）: %s", exc)
             return False
-        if len(text) < 20 or ("浣滀负" in text[:30] and "AI" in text[:30]):
+        if len(text) < 20 or ("作为" in text[:30] and "AI" in text[:30]):
             return False
         self.store.append(session, text, day=day, people=people)
-        logger.info("[澶ц偉楸兼棩璁癩 宸插啓鍏?%s %s", session, day)
+        logger.info("[AI bot diary] 已写入 %s %s", session, day)
         return True
 
     async def _write_all(self, day: str):
@@ -203,9 +206,9 @@ class DafeiyuDiaryPlugin(Star):
                 if await self._write_one(session, day):
                     wrote += 1
             except Exception as exc:
-                logger.warning("[澶ц偉楸兼棩璁癩 澶勭悊 %s 澶辫触: %s", session, exc)
+                logger.warning("[AI bot diary] 处理 %s 失败: %s", session, exc)
         if wrote:
-            logger.info("[澶ц偉楸兼棩璁癩 %s 鍏卞啓鍏?%s 绡?, day, wrote)
+            logger.info("[AI bot diary] %s 共写入 %s 篇", day, wrote)
 
     async def _diary_loop(self):
         while True:
@@ -220,25 +223,25 @@ class DafeiyuDiaryPlugin(Star):
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
-                logger.warning("[澶ц偉楸兼棩璁癩 瀹氭椂浠诲姟寮傚父: %s", exc)
+                logger.warning("[AI bot diary] 定时任务异常: %s", exc)
             await asyncio.sleep(60)
 
-    @filter.command("鍐欐棩璁?, alias={"鏃ヨ鏈?})
+    @filter.command("写日记", alias={"日记本"})
     async def write_now(self, event: AstrMessageEvent):
-        """绠＄悊鍛樻墜鍔ㄦ妸褰撳墠浼氳瘽浠婂ぉ鐨勮亰澶╁啓鎴愪竴绡囨棩璁般€?""
+        """管理员手动把当前会话今天的聊天写成一篇日记。"""
         try:
             admins = {str(x) for x in (self.context.get_config().get("admins_id", []) or [])}
         except Exception:
             admins = set()
         if admins and str(event.get_sender_id()) not in admins:
-            yield event.plain_result("杩欎釜鍙湁绠＄悊鍛樿兘鐢ㄣ€?)
+            yield event.plain_result("这个只有管理员能用。")
             return
         ok = await self._write_one(self._session_key(event), date.today().isoformat())
-        yield event.plain_result("鍐欏ソ浜嗐€? if ok else "浠婂ぉ杩樻病鏀掑绱犳潗锛屾垨鑰呮ā鍨嬫病鎺ラ€氥€?)
+        yield event.plain_result("写好了。" if ok else "今天还没攒够素材，或者模型没接通。")
 
     @filter.event_message_type(filter.EventMessageType.ALL, priority=sys.maxsize - 2)
     async def record_all_messages(self, event: AstrMessageEvent):
-        """鍏堜簬缇よ亰澧炲己鎻掍欢璁板綍缇ゆ秷鎭紝淇濊瘉鏃ヨ鏈夊綋澶╃殑涓婁笅鏂囥€?""
+        """先于群聊增强插件记录群消息，保证日记有当天的上下文。"""
         if not bool(self._cfg("enabled", True)):
             return
         try:
@@ -251,7 +254,7 @@ class DafeiyuDiaryPlugin(Star):
             except Exception:
                 pass
             session = self._session_key(event)
-            name = event.get_sender_name() or "缇ゅ弸"
+            name = event.get_sender_name() or "群友"
             message_id = str(getattr(getattr(event, "message_obj", None), "message_id", "") or "")
             self._record(session, "user", name, text, message_id)
         except Exception:
@@ -264,7 +267,7 @@ class DafeiyuDiaryPlugin(Star):
         try:
             session = self._session_key(event)
             text = event.get_message_str() or ""
-            name = event.get_sender_name() or "缇ゅ弸"
+            name = event.get_sender_name() or "群友"
             message_id = str(getattr(getattr(event, "message_obj", None), "message_id", "") or "")
             self._record(session, "user", name, text, message_id)
             entries = self.store.recall(
@@ -277,7 +280,7 @@ class DafeiyuDiaryPlugin(Star):
             if block:
                 request.system_prompt = (request.system_prompt or "") + block
         except Exception as exc:
-            logger.warning("[澶ц偉楸兼棩璁癩 鍙洖澶辫触锛堝凡蹇界暐锛? %s", exc)
+            logger.warning("[AI bot diary] 召回失败（已忽略）: %s", exc)
 
     @filter.on_llm_response(priority=-100)
     async def on_llm_response(self, event: AstrMessageEvent, response):
@@ -287,7 +290,7 @@ class DafeiyuDiaryPlugin(Star):
             text = str(getattr(response, "completion_text", "") or "").strip()
             if text:
                 session = self._session_key(event)
-                self._record(session, "assistant", "澶ц偉楸?, text)
+                self._record(session, "assistant", "Bot", text)
         except Exception:
             pass
 
@@ -300,4 +303,3 @@ class DafeiyuDiaryPlugin(Star):
                 pass
         except Exception:
             pass
-

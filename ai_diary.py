@@ -1,12 +1,12 @@
 """
-大肥鱼日记 —— QQ 机器人"会自己写日记"的最小实现。
+AI bot diary — a minimal private-diary implementation for AstrBot.
 
 依赖：只用标准库（json / os / re / datetime）。
 不依赖 embedding：DeepSeek 官方没有 /embeddings 接口，所以召回用
 「昵称精确匹配 + 关键词子串 + 时间衰减」，够用且零成本。
 
 用法：
-    from dafeiyu_diary import DiaryStore, write_daily, build_recall_block
+    from ai_diary import DiaryStore, write_daily, build_recall_block
 
     store = DiaryStore("data/diary")
     write_daily(store, complete=my_llm_call, group_id="123456",
@@ -16,7 +16,7 @@
     # recall 直接拼进 system prompt 末尾，空字符串表示没有可提的日记
 
 CLI 自测（不联网，用假 LLM）：
-    python dafeiyu_diary.py --demo
+    python ai_diary.py --demo
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ from datetime import date as _date, datetime
 
 # ── 写日记的提示词 ──────────────────────────────────────────────────────────
 
-DIARY_SYSTEM = """你在替「大肥鱼」写她自己的日记。日记只有她自己看，不是发给群里的消息。
+DIARY_SYSTEM = """你在替角色写她自己的日记。日记只有她自己看，不是发给群里的消息。
 
 写法硬要求：
 1. 第一人称，日期开头单独一行，例如「10月24日 周五 阴」。

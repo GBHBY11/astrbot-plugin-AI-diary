@@ -1,10 +1,10 @@
-# Dafeiyu Diary
+# AI bot diary
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-A lightweight diary-memory plugin for [AstrBot](https://github.com/AstrBotDevs/AstrBot).
+[Download ZIP](https://github.com/GBHBY11/astrbot-plugin-AI-diary/archive/refs/heads/main.zip) · [GitHub repository](https://github.com/GBHBY11/astrbot-plugin-AI-diary)
 
-The bot records the day's chat, writes one short private diary entry in character, and recalls up to two recent entries when it replies. The diary is never quoted verbatim and the bot is instructed never to mention that it keeps a diary.
+A private daily-diary memory plugin for [AstrBot](https://github.com/AstrBotDevs/AstrBot). The bot records the day's chat, writes one short diary entry in character, and recalls up to two recent entries when it replies. The diary is never quoted verbatim, and the bot is instructed never to mention that it keeps one.
 
 ## Features
 
@@ -12,7 +12,7 @@ The bot records the day's chat, writes one short private diary entry in characte
 - Daily writing: one entry per active session per day.
 - Recall: up to two recent entries are injected into the system prompt.
 - Privacy scrub: phone numbers, ID numbers and passwords are replaced before storage.
-- Fail silently: generation and delivery errors never leak into the chat.
+- Fail silently: generation and delivery errors never leak into chat.
 - Manual command: an admin can run `/写日记` to write the current session's entry immediately.
 - Pure standard library: no extra Python packages.
 
@@ -20,39 +20,67 @@ The bot records the day's chat, writes one short private diary entry in characte
 
 - AstrBot 4.x
 - A working chat provider configured in AstrBot
-- A persona that matches the supplied `persona.txt`, or your own persona
+- A persona prompt. The bundled `persona.txt` is a sample; you can use it or your own.
 
-## Installation
+## Quick install
 
-### Option 1: copy the folder
+### Option 1: download ZIP
 
-Copy this repository into AstrBot's plugin directory and rename the folder to the plugin ID:
+1. Click **[Download ZIP](https://github.com/GBHBY11/astrbot-plugin-AI-diary/archive/refs/heads/main.zip)**.
+2. Extract it. You will get a folder named `astrbot-plugin-AI-diary-main`.
+3. Rename that folder to:
 
 ```text
-AstrBot/data/plugins/astrbot_plugin_dafeiyu_diary/
+astrbot_plugin_ai_diary
 ```
 
-The final layout should look like:
+4. Put it into AstrBot's plugin directory:
 
 ```text
-astrbot_plugin_dafeiyu_diary/
+AstrBot/data/plugins/astrbot_plugin_ai_diary/
+```
+
+5. Restart AstrBot, or reload the plugin from the WebUI.
+
+The final layout must be:
+
+```text
+astrbot_plugin_ai_diary/
 ├── main.py
-├── dafeiyu_diary.py
+├── ai_diary.py
 ├── metadata.yaml
 ├── _conf_schema.json
 ├── persona.txt
-└── README.md
+├── README.md
+├── README.zh-CN.md
+├── CHANGELOG.md
+└── LICENSE
 ```
 
-Restart AstrBot or reload the plugin from the WebUI.
+### Option 2: git clone
 
-### Option 2: install from GitHub
+```bash
+cd AstrBot/data/plugins
+git clone https://github.com/GBHBY11/astrbot-plugin-AI-diary.git astrbot_plugin_ai_diary
+```
 
-After publishing the repository, install it from AstrBot's plugin market using the GitHub URL, or clone it into `data/plugins/astrbot_plugin_dafeiyu_diary`.
+Restart AstrBot afterwards.
 
-## Configuration
+## Configure the persona
 
-Open **AstrBot → Plugins → Dafeiyu Diary → Config**.
+The plugin does not create a persona automatically.
+
+1. Open AstrBot WebUI → **Personas**.
+2. Create a new persona named `AI bot diary`.
+3. Open `persona.txt` from this repository and paste it as the system prompt, or use your own persona.
+4. Bind that persona to the agent/session that should use the diary.
+5. Keep the diary rules in the prompt: private memory, no verbatim quotes, never say "I wrote a diary".
+
+If you use your own persona, make sure it knows the diary is private memory and must not be exposed.
+
+## Configure the plugin
+
+Open **AstrBot → Plugins → AI bot diary → Config**.
 
 | Key | Default | Description |
 |---|---|---|
@@ -78,12 +106,31 @@ Writes the current session's diary immediately. Only AstrBot admins can use it.
 ## Data layout
 
 ```text
-data/plugin_data/astrbot_plugin_dafeiyu_diary/
+data/plugin_data/astrbot_plugin_ai_diary/
 ├── diary/<session>/<YYYY-MM>.jsonl
 └── transcripts/<session>/<YYYY-MM-DD>.jsonl
 ```
 
 `<session>` is `group_<id>` or `private_<user_id>`, so groups and private chats never share diaries.
+
+## Upgrading from the old plugin ID
+
+This release changes the AstrBot plugin ID from `astrbot_plugin_dafeiyu_diary` to `astrbot_plugin_ai_diary`.
+
+Before installing, remove or disable the old plugin folder, then rename the data directory so existing diaries are kept:
+
+```bash
+cd AstrBot/data/plugin_data
+mv astrbot_plugin_dafeiyu_diary astrbot_plugin_ai_diary
+```
+
+If you are on Windows:
+
+```powershell
+Rename-Item "AstrBot\data\plugin_data\astrbot_plugin_dafeiyu_diary" "astrbot_plugin_ai_diary"
+```
+
+Then install this version as `astrbot_plugin_ai_diary` and restart AstrBot. Do not run both plugin IDs at the same time.
 
 ## How it works
 
@@ -91,16 +138,25 @@ data/plugin_data/astrbot_plugin_dafeiyu_diary/
 2. At `write_hour:write_minute`, the plugin sends the transcript and the persona prompt to the configured provider.
 3. The generated entry is scrubbed and stored as JSONL.
 4. On the next LLM request, the plugin retrieves up to `recall_limit` entries and appends a recall block to the system prompt.
-5. The persona is told to treat the diary as private memory: never quote it, never say "I wrote a diary".
+5. The persona treats the diary as private memory: never quote it, never say "I wrote a diary".
 
-## Customization
+## Project naming
 
-`persona.txt` contains the Dafeiyu persona prompt. You can replace it with your own character, but keep the diary rules if you want the same behavior.
-
-The project name and plugin ID are intentionally separate:
+The repository name and the AstrBot plugin ID are intentionally different:
 
 - GitHub repository: `astrbot-plugin-AI-diary`
-- AstrBot plugin ID: `astrbot_plugin_dafeiyu_diary`
+- AstrBot plugin ID: `astrbot_plugin_ai_diary`
+- Display name: `AI bot diary`
+
+AstrBot requires `metadata.yaml`'s `name` to be a valid Python module identifier. Hyphens are not allowed, so `astrbot-plugin-AI-diary` cannot be used as the plugin ID. The hyphenated name is kept for the GitHub project; the underscored ID is what AstrBot loads.
+
+## Troubleshooting
+
+- **Plugin does not appear**: confirm the folder is named `astrbot_plugin_ai_diary` and `metadata.yaml` is at its root.
+- **No diary is written**: check that the provider is working and that there is enough text in the day's transcript.
+- **`/写日记` says no permission**: the command is admin-only.
+- **No recall**: entries are only recalled after at least one diary has been written, and `recall_limit` must be greater than 0.
+- **Old diaries missing**: perform the data-directory rename in "Upgrading from the old plugin ID".
 
 ## Notes
 
@@ -112,9 +168,6 @@ The project name and plugin ID are intentionally separate:
 
 MIT License. See [LICENSE](LICENSE).
 
-You may use, copy, modify, distribute, sublicense, and sell copies of this
-project, provided that the copyright notice and permission notice are included.
+You may use, copy, modify, distribute, sublicense, and sell copies of this project, provided that the copyright notice and permission notice are included.
 
-The Dafeiyu persona text is included as part of this project. If you replace or
-redistribute it, keep the original attribution and make sure you have the right
-to share the character material.
+The bundled persona text is a sample. If you replace or redistribute it, keep the original attribution and make sure you have the right to share the character material.

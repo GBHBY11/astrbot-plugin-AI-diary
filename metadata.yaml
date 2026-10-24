@@ -1,7 +1,7 @@
-﻿name: astrbot_plugin_dafeiyu_diary
-display_name: Dafeiyu Diary
-desc: A private daily-diary memory plugin for AstrBot's Dafeiyu persona.
+﻿name: astrbot_plugin_ai_diary
+display_name: AI bot diary
+desc: A private daily-diary memory plugin for AstrBot.
 author: DSH
-version: 1.0.0
+version: 1.1.0
 repo: https://github.com/GBHBY11/astrbot-plugin-AI-diary
 
